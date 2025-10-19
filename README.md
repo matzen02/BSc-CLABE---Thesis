@@ -21,5 +21,7 @@ Metcalf, G., & Stock, J. H. (2020). *The Macroeconomic Impact of Europe’s Carb
 ## Notes
 This repository builds upon the original code by Metcalf and Stock, adapted to newer data and refined for educational purposes.
 
-## License
-This project is released under the MIT License. Please cite appropriately if you reuse the code.
+## After the Thesis
+After the Bachelor's thesis, I decided to ask the same question for the project of the course Data Science for Economics during my Master's degree. For this project, I asked myself the same question but used completely different tools. I developed a model in Python using neural networks and Bayesian statistics.
+### Results
+As a first insight we see that this model give the same result as the one developed by Metcalf and Stock (2020), but it also allows us for some counterfactuals. Have a look at the assignment to discover them!
