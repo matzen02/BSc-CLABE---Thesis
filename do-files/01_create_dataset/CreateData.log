@@ -1,0 +1,2171 @@
+
+. *******************************************************************************
+.                 * 1. Setting up all the datasets
+. *******************************************************************************
+. * INSTALL the following package if not already installed:
+.  net install tidy, from("https://raw.githubusercontent.com/matthieugomez/tidy.ado/master/") replace
+checking tidy consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. *
+. ************* Names ********************
+. * This file standardizes the country names in the dataset 
+. * FINITO, NON TOCCARE
+. *
+. include names
+
+. clear
+
+. *******************************************************************************
+. *
+. *     Correct names data set 05/26/20 
+. *               Modified 18/06/2024, M Zen
+. *               Should be done
+. *
+. *******************************************************************************
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\na
+> mes_2digit_corrected.xlsx", case(lower) first clear 
+(3 vars, 242 obs)
+
+. 
+. duplicates tag country,gen(tag)
+
+Duplicates in terms of country
+
+. gsort -tag
+
+. drop tag
+
+. replace country="MNE" if country2=="ME" //according to google
+(1 real change made)
+
+. replace country="MKD" if country2=="MK" //according to google
+(1 real change made)
+
+. drop if inlist(country2,"EU28","EA19","EA12","EU15","EU27_2019","EA")
+(6 observations deleted)
+
+. drop if country=="EURO"
+(1 observation deleted)
+
+. 
+. *standardize country names
+. replace name="Uganda" if country=="UGA" //country==unknown
+(1 real change made)
+
+. replace name="Kosovo" if country=="UNK" //country==unknown
+(1 real change made)
+
+. replace name="Azerbaijan" if name=="Azerbaidjan"
+(0 real changes made)
+
+. replace name="Bosnia and Herzegovina" if name=="Bosnia-Herzegovina"
+(0 real changes made)
+
+. replace name="Congo_the Democratic Republic of the" if name=="Congo, Dem. Rep. Of"
+(1 real change made)
+
+. replace name="Cote d'Ivoire" if name=="Côte d'Ivoire"
+(1 real change made)
+
+. replace name="Falkland Islands (Malvinas)" if name=="Falkland Islands"
+(1 real change made)
+
+. replace name="Iran, Islamic Republic of" if name=="Iran"
+(1 real change made)
+
+. replace name="Korea, Democratic People's Republic of" if name=="North Korea"
+(1 real change made)
+
+. replace name="Korea, Republic of" if name=="South Korea"
+(1 real change made)
+
+. replace name="Kyrgyzstan" if name=="Kirghizistan"
+(1 real change made)
+
+. replace name="Lao People's Democratic Republic" if name=="Laos"
+(1 real change made)
+
+. replace name="Libyan Arab Jamahiriya" if name=="Libya"
+(1 real change made)
+
+. replace name="Macao" if name=="Macau"
+(1 real change made)
+
+. replace name="Macedonia, the former Yugoslav Republic of" if name=="Macedonia"
+(1 real change made)
+
+. replace name="Micronesia, Federated States of" if name=="Micronesia, Federated states of"
+(1 real change made)
+
+. replace name="Moldova, Republic of" if name=="Moldova"
+(1 real change made)
+
+. replace name="Palau" if name=="Pacific Islands (Palau)"
+(1 real change made)
+
+. replace name="Russian Federation" if name=="Russia"
+(1 real change made)
+
+. replace name="Syrian Arab Republic" if name=="Syria"
+(1 real change made)
+
+. replace name="Taiwan_Province of China" if name=="Chinese Taipei"
+(1 real change made)
+
+. replace name="Tajikistan" if name=="Tadjikistan"
+(1 real change made)
+
+. replace name="Tanzania_United Republic of" if name=="United Republic of Tanzania"
+(1 real change made)
+
+. replace name="Turkmenistan" if name=="Turkménistan"
+(1 real change made)
+
+. replace name="Viet Nam" if name=="Vietnam"
+(1 real change made)
+
+. replace name="Virgin Islands_USA" if name=="United States Virgin Islands"
+(1 real change made)
+
+. replace name="Slovakia" if name=="Slovak Republic"
+(1 real change made)
+
+. replace name="Czech Rep" if name=="Czech Republic"
+(1 real change made)
+
+. 
+. *change 3-digit code
+. replace country="HRV" if country=="FYUG-HRV"
+(1 real change made)
+
+. replace country="EST" if country=="USSR-EST"
+(1 real change made)
+
+. replace country="LVA" if country=="USSR-LVA"
+(1 real change made)
+
+. replace country="LTU" if country=="USSR-LTU"
+(1 real change made)
+
+. replace country="RUS" if country=="USSR-RUS"
+(1 real change made)
+
+. 
+. rename (country name country2) (ID country ID_2digit)
+
+. save names,replace
+file names.dta saved
+
+. 
+. 
+. ************* GDP data ********************
+. *This file compiles the GDP dataset and makes changes to Norway and Ireland dataset
+. *  as discussed in the paper.
+. *
+. include gdp
+
+. clear
+
+. 
+. *******************************************************************************
+. *
+. *     Create GDP data set 01/25/20 
+. *  Updated 03/06/22 by Siddhi D.
+. *
+. *******************************************************************************
+. *
+. 
+. *
+. * create index2016 tempfile - US GDP deflator
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(US gdp deflator (FRED)) case(lower) first clear 
+(5 vars, 64 obs)
+
+. keep year index2016 index2015
+
+. rename index2016 igdp16
+
+. rename index2015 igdp15
+
+.  label var igdp16 "US GDP deflator (2016=100)"
+
+. tempfile igdp16
+
+. save "`igdp16'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000001.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000001.tmp saved as .dta format
+
+. *
+. * create OECD ppp tempfile
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(OECD ppp) case(lower) first clear 
+(8 vars, 2,646 obs)
+
+. keep location time value
+
+. keep if location=="SWE"
+(2,582 observations deleted)
+
+. replace location="LIE" if location=="SWE"
+(64 real changes made)
+
+. tempfile pppLIE
+
+. save "`pppLIE'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000002.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000002.tmp saved as .dta format
+
+. 
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(OECD ppp) case(lower) first clear 
+(8 vars, 2,646 obs)
+
+. keep location time value
+
+. drop if location=="LIE"
+(0 observations deleted)
+
+. append using "`pppLIE'"
+
+. rename location ID
+
+. rename time year
+
+. rename value ppp
+
+.  label var ppp "Purchasing power parity (OECD)"
+
+. tempfile ppp
+
+. save "`ppp'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000003.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000003.tmp saved as .dta format
+
+. 
+. 
+. * create real gdp-local currency tempfile
+. 
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(GDP constant LCU) cellrange(A4:BO270) first clear
+(67 vars, 266 obs)
+
+. drop CountryName IndicatorName IndicatorCode
+
+. reshape long _, i(CountryCode) j(year)
+(j = 1960 1961 1962 1963 1964 1965 1966 1967 1968 1969 1970 1971 1972 1973 1974 1975 1976 1977 1978 1
+> 979 1980 1981 1982 1983 1984 1985 1986 1987 1988 1989 1990 1991 1992 1993 1994 1995 1996 1997 1998 
+> 1999 2000 2001 2002 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018
+>  2019 2020 2021 2022)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations              266   ->   16,758      
+Number of variables                  64   ->   3           
+j variable (63 values)                    ->   year
+xij variables:
+                  _1960 _1961 ... _2022   ->   _
+-----------------------------------------------------------------------------
+
+. rename (CountryCode year _) (ID year rgdp)
+
+.  label var rgdp "Real GDP, local currency"
+
+. tempfile rgdp
+
+. save "`rgdp'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000004.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000004.tmp saved as .dta format
+
+. 
+. * create gdp deflator local currency tempfile
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(GDP deflator) cellrange(A4:BP270) first clear
+(68 vars, 266 obs)
+
+. drop CountryName IndicatorName IndicatorCode
+
+. reshape long _, i(CountryCode) j(year)
+(j = 1960 1961 1962 1963 1964 1965 1966 1967 1968 1969 1970 1971 1972 1973 1974 1975 1976 1977 1978 1
+> 979 1980 1981 1982 1983 1984 1985 1986 1987 1988 1989 1990 1991 1992 1993 1994 1995 1996 1997 1998 
+> 1999 2000 2001 2002 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018
+>  2019 2020 2021 2022 2023)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations              266   ->   17,024      
+Number of variables                  65   ->   3           
+j variable (64 values)                    ->   year
+xij variables:
+                  _1960 _1961 ... _2023   ->   _
+-----------------------------------------------------------------------------
+
+. rename (CountryCode year _) (location time value)
+
+. 
+. preserve
+
+. keep if location=="SWE"
+(16,960 observations deleted)
+
+. replace location="LIE" if location=="SWE"
+(64 real changes made)
+
+. tempfile pgdpLIE
+
+. save "`pgdpLIE'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000006.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000006.tmp saved as .dta format
+
+. restore 
+
+. 
+. drop if location=="LIE"
+(64 observations deleted)
+
+. append using "`pgdpLIE'"
+
+. rename location ID
+
+. rename time year
+
+. rename value pgdp
+
+.  label var pgdp "GDP deflator, local currency"
+
+. tempfile pgdp
+
+. save "`pgdp'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000007.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000007.tmp saved as .dta format
+
+. *
+. * create ngdp_usd (nominal GDP in current-year USD using WB PPP) tempfile
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(OECD nominal gdp in USD (OECD)) case(lower) first clear 
+(8 vars, 2,478 obs)
+
+. keep location time value
+
+. rename location ID
+
+. rename time year
+
+. rename value ngdp_usd
+
+. destring year, replace
+year: all characters numeric; replaced as int
+
+.  label var ngdp_usd "GDP, nominal USD"
+
+. tempfile ngdp_usd
+
+. save "`ngdp_usd'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000008.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000008.tmp saved as .dta format
+
+. *
+. * create ngdppc_usd (nominal GDP pc in current-year USD using WB PPP) tempfile
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\OE
+> CD_GDP_mio.xlsx",sheet(OECD nominal gdppc in USD(OECD)) case(lower) first clear 
+(7 vars, 2,411 obs)
+
+. keep location time value
+
+. rename location ID
+
+. rename time year
+
+. rename value ngdppc_usd
+
+. destring year, replace
+year: all characters numeric; replaced as int
+
+.  label var ngdppc_usd "GDPPC, nominal USD"
+
+. tempfile ngdppc_usd
+
+. save "`ngdppc_usd'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_000009.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_000009.tmp saved as .dta format
+
+. 
+. 
+. *
+. * Modified Gross National Income and CPI for Ireland
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\Ir
+> ish Modified GNI.xlsx",sheet(data) case(lower) first clear 
+(11 vars, 35 obs)
+
+. keep id year cpi_irl gnim_irl
+
+. rename id ID
+
+. tempfile gnim_irl
+
+. save "`gnim_irl'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000a.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000a.tmp saved as .dta format
+
+. 
+. * Mainland GDP for Norway
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\No
+> rway_mainland_right.xlsx",sheet(tostata) case(lower) first clear 
+(5 vars, 54 obs)
+
+. gen pgdp_nor = 100*ngdp_nor/rgdp_nor
+
+. rename id ID
+
+. tempfile gdpm_nor
+
+. save "`gdpm_nor'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000b.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000b.tmp saved as .dta format
+
+. 
+.         
+. * merge 
+. use "`igdp16'"
+
+. merge 1:m year using "`ppp'" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,710  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge 1:1 ID year using "`rgdp'" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        14,320
+        from master                       136  (_merge==1)
+        from using                     14,184  (_merge==2)
+
+    Matched                             2,574  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge 1:1 ID year using "`pgdp'" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           318
+        from master                        94  (_merge==1)
+        from using                        224  (_merge==2)
+
+    Matched                            16,800  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge 1:1 ID year using "`ngdp_usd'"
+(variable ID was str4, now str5 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        14,808
+        from master                    14,724  (_merge==1)
+        from using                         84  (_merge==2)
+
+    Matched                             2,394  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge 1:1 ID year using "`ngdppc_usd'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        14,791
+        from master                    14,791  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                             2,411  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge 1:1 ID year using "`gnim_irl'" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        17,167
+        from master                    17,167  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                                35  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge 1:1 ID year using "`gdpm_nor'" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        17,148
+        from master                    17,148  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                                54  (_merge==3)
+    -----------------------------------------
+
+.  drop _merge
+
+. merge m:1 ID using "names" 
+(variable ID was str5, now str8 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         5,022
+        from master                     4,978  (_merge==1)
+        from using                         44  (_merge==2)
+
+    Matched                            12,224  (_merge==3)
+    -----------------------------------------
+
+.  drop if _merge==2
+(44 observations deleted)
+
+.  drop _merge
+
+. *list ID year pgdp rgdp ppp if ID=="SWE"
+. 
+. gen pop = ngdp_usd/ngdppc_usd
+(14,829 missing values generated)
+
+.  label var pop "population (millions)"
+
+.  
+. * Ireland: eliminate for intellectual property investment boom
+. *     (1) splice GDP (<=1995) and modified GNI using 1995 splice year
+. *     (2) replace pgdp with cpi
+. gen rgdp_wb = rgdp
+(6,888 missing values generated)
+
+.  label var rgdp_wb "Real GDP growth, World Bank, unadjusted"
+
+. gen rgdp_x99 = rgdp
+(6,888 missing values generated)
+
+. gen pgdp_x99 = pgdp
+(6,915 missing values generated)
+
+. gen rgnim_irl = gnim_irl/cpi_irl
+(17,178 missing values generated)
+
+. sum rgdp if (ID=="IRL")*(year==1995)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+        rgdp |          1    9.17e+10           .   9.17e+10   9.17e+10
+
+.  sca mrgdp95 = r(mean)
+
+. sum rgnim_irl if (ID=="IRL")*(year==1995)
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   rgnim_irl |          1    758.0211           .   758.0211   758.0211
+
+.  sca mrgni95 = r(mean)
+
+. replace rgdp = (mrgdp95/mrgni95)*rgnim_irl if (ID=="IRL")*(year>=1995)
+(27 real changes made, 4 to missing)
+
+. replace pgdp = cpi_irl if (ID=="IRL")
+(53 real changes made, 18 to missing)
+
+. drop rgnim_irl gnim_irl cpi_irl rgdp_x99 pgdp_x99
+
+. 
+. * Norway: replace WB GDP with mainland GDP
+. replace rgdp = rgdp_nor if ID=="NOR"
+(64 real changes made, 10 to missing)
+
+. replace pgdp = pgdp_nor if ID=="NOR"
+(64 real changes made, 10 to missing)
+
+. drop rgdp_nor pgdp_nor ngdp_nor
+
+. 
+. * real gdp and gdppc in 2016 USD (current PPP conversion then US GDP deflator)
+. gen rgdp_usd = ngdp_usd/(igdp16/100)
+(14,901 missing values generated)
+
+.  label var rgdp_usd "real GDP (USD)"
+
+. gen rgdppc_usd = ngdppc_usd/(igdp16/100)
+(14,952 missing values generated)
+
+.  label var rgdppc_usd "real per capita GDP (2016 USD)"
+
+. * real GDP pc in real local currency
+. gen rgdppc = rgdp/(pop*1e6)
+(15,057 missing values generated)
+
+.  label var rgdppc "Real GDP pc (real local currency)"
+
+. *list ID year  ngdp_usd ngdppc_usd rgdp_usd rgdppc_usd rgdppc pop r99 if ID=="USA"
+. 
+. * create OECD-wide GDP (OECD-wide GDP is in USD) (GDP is ex IRL)
+. cap drop x99
+
+. gen x99 = .
+(17,202 missing values generated)
+
+. replace x99 = rgdp_usd if (ID=="OECD")
+(0 real changes made)
+
+. egen rgdp_oecd = mean(x99), by(year)
+(17,202 missing values generated)
+
+.  label var rgdp_oecd "OECD-wide GDP (2016 USD)" 
+
+. replace x99 = .
+(0 real changes made)
+
+.  replace x99 = rgdppc_usd if (ID=="OECD")
+(0 real changes made)
+
+. egen rgdppc_oecd = mean(x99), by(year)
+(17,202 missing values generated)
+
+.  label var rgdppc_oecd "OECD-wide GDP per capita (2016 USD)" 
+
+. drop x99
+
+. *
+. 
+. sort ID year
+
+. egen cnum = group(ID)
+
+. xtset cnum year
+
+Panel variable: cnum (unbalanced)
+ Time variable: year, 1960 to 2023
+         Delta: 1 unit
+
+.  gen dpgdp = D.pgdp
+(7,162 missing values generated)
+
+. cap drop cnum*
+
+. sort ID year
+
+. save gdpdata, replace
+(file gdpdata.dta not found)
+file gdpdata.dta saved
+
+. *
+. 
+. 
+. 
+. 
+. ************* Carbon tax data ********************
+. *Compiles carbon tax data from the World Bank's carbon pricing dashboard
+. *
+. include ctax
+
+. clear
+
+. *******************************************************************************
+. *
+. *     Create carbon tax data set 01/25/20 
+. *               Edited, 2/12/22, G. Metcalf
+. *               Edited, 18/06/2024, M. Zen
+. *
+. *******************************************************************************
+. *
+. ***************************** create ctax.dta **********************************
+. global EUctax CHE DNK ESP EST FIN FRA GBR IRL ISL LVA NOR POL PRT SVN SWE LIE
+
+. 
+. * read in the degree to which carbon tax revenues were initially intended to reduce existing tax ra
+> tes
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\WB
+> _CarbonTaxData_2023.xlsx", sheet(CTaxDetails) cellrange(A2:U22) first case(l) clear 
+(21 vars, 20 obs)
+
+. replace country="United Kingdom" if country=="UK"
+variable country was str13 now str14
+(1 real change made)
+
+. rename revenuerecyclingvariable IntRevRec
+
+. label var IntRevRec "Fraction of carbon tax revenues initially earmarked for tax reduction"
+
+. keep country IntRevRec
+
+. merge 1:1 country using names
+(variable country was str14, now str66 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           219
+        from master                         2  (_merge==1)
+        from using                        217  (_merge==2)
+
+    Matched                                18  (_merge==3)
+    -----------------------------------------
+
+. drop if _merge!=3
+(219 observations deleted)
+
+. drop _merge ID_2digit
+
+. tempfile IntRevRec
+
+. save "`IntRevRec'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000c.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000c.tmp saved as .dta format
+
+. 
+. * create share tempfile 
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\WB
+> _CarbonTaxData_2023.xlsx",sheet(share) first clear 
+(19 vars, 1 obs)
+
+. gather $EUctax, variable(ID) value(share) 
+(j = 1 10 11 12 13 14 15 16 2 3 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations                1   ->   16          
+Number of variables                  19   ->   5           
+j variable (16 values)                    ->   ID
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+
+. label var share "share of jurisdiction's GHG emissions covered by tax"
+
+. tempfile share
+
+. save "`share'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000d.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000d.tmp saved as .dta format
+
+. 
+. * read in carbon tax rate in local currency
+. import excel using "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\WB
+> _CarbonTaxData_2023.xlsx",sheet(rate_LCU) cellrange(A2:Q32) first clear 
+(17 vars, 30 obs)
+
+. gather $EUctax, variable(ID) value(rate_CTI_LCU) 
+(j = 1 10 11 12 13 14 15 16 2 3 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               30   ->   480         
+Number of variables                  17   ->   3           
+j variable (16 values)                    ->   ID
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+
+. label var rate_CTI_LCU "Carbon tax rate from WB CTI (nominal local currency)"
+
+. tempfile rate_CTI_LCU
+
+. save "`rate_CTI_LCU'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000e.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000e.tmp saved as .dta format
+
+. 
+. * read in Dolphin's emissions-weighted carbon tax (national, US states, canadian provinces and terr
+> itories)
+. import delimited "C:\Users\matti\OneDrive\Desktop\uni\thesis\5. Mattia fa cose\Raw data\sicuri\ECP_
+> tax_2013.csv",clear
+(encoding automatically selected: ISO-8859-1)
+(4 vars, 5,742 obs)
+
+. label var ecp_ghg_tax_usd_2015 "Emissions (2013 GHG) weighted carbon tax, 2015 USD" 
+
+. drop ecp_co2_tax_usd_2015
+
+. replace country="Yemen" if country=="Yemen, Rep."
+(29 real changes made)
+
+. merge m:1 country using names
+(variable country was str25, now str66 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,377
+        from master                     2,262  (_merge==1)
+        from using                        115  (_merge==2)
+
+    Matched                             3,480  (_merge==3)
+    -----------------------------------------
+
+. foreach i in $EUctax{
+  2. list country _merge if ID=="`i'" & _merge!=3
+  3. } // Dolphin didn't record tax for Liechtenstein
+
+      +--------------------------------+
+      |       country           _merge |
+      |--------------------------------|
+5799. | Liechtenstein   Using only (2) |
+      +--------------------------------+
+
+. drop if _merge!=3
+(2,377 observations deleted)
+
+. drop _merge
+
+. 
+. * merge
+. merge 1:1 ID year using "`share'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         3,496
+        from master                     3,480  (_merge==1)
+        from using                         16  (_merge==2)
+
+    Matched                                 0  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge 1:1 ID year using "`rate_CTI_LCU'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         3,106
+        from master                     3,061  (_merge==1)
+        from using                         45  (_merge==2)
+
+    Matched                               435  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge m:1 ID using "`IntRevRec'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                         2,987
+        from master                     2,987  (_merge==1)
+        from using                          0  (_merge==2)
+
+    Matched                               554  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+. *
+. * share of emissions covered by ctax in 2019
+. sort ID year
+
+. by ID: egen share19 = max(share)
+(3,107 missing values generated)
+
+. replace share19 = 0 if share19 == .
+(3,107 real changes made)
+
+.  label var share19 "share GHG emissions covered by tax in 2019"
+
+. *
+. * save ctax data
+. sort ID year
+
+. label var ID "3-digit country code"
+
+. save ctax_CTI, replace
+(file ctax_CTI.dta not found)
+file ctax_CTI.dta saved
+
+. 
+. 
+. *************  Emissions data ********************
+. include emisson_2018
+
+. clear
+
+. * Emissions data
+. *  https://ec.europa.eu/eurostat/databrowser/view/sdg_13_10/default/table?lang=en
+. global ID_2digit AT BE BG CH CY CZ DE DK EE EL ES EU27_2020 FI FR HR HU IE IS IT LT LU LV MT NL NO 
+> PL PT SE SI SK
+
+. foreach k in 2 6 21 31 32 {
+  2. import excel using "C:\Users\matti\PycharmProjects\Formatting Document\env_air_gge__custom_11832
+> 001_spreadsheet_corretto.xlsx", sheet(Sheet `k') cellrange(A10:AF49) firstrow clear  // CO2 from fu
+> el combustion
+  3. drop RO
+  4. rename GEO year
+  5. destring year, replace 
+  6.  foreach i in $ID_2digit {
+  7.     if "`i'" != "HU"{
+  8.                 replace `i' = "" if `i' == ":"
+  9.                 destring `i',replace 
+ 10.      }
+ 11.         }
+ 12. gather $ID_2digit, variable(ID_2digit) value(emission`k') 
+ 13. tempfile emission`k'
+ 14. save "`emission`k''", replace
+ 15. }
+(32 vars, 39 obs)
+year: all characters numeric; replaced as int
+(1 missing value generated)
+(5 real changes made)
+AT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+BE: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+BG: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+CH: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CY: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CZ: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DK: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+ES: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EU27_2020: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FI: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+HR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IS: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LU: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LV: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+MT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NO: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+PL: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+PT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+SE: all characters numeric; replaced as double
+(6 missing values generated)
+(1 real change made)
+SI: all characters numeric; replaced as double
+(2 missing values generated)
+(5 real changes made)
+SK: all characters numeric; replaced as double
+(6 missing values generated)
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               39   ->   1,170       
+Number of variables                  31   ->   3           
+j variable (30 values)                    ->   ID_2digit
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000f.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000f.tmp saved as .dta format
+(32 vars, 39 obs)
+year: all characters numeric; replaced as int
+(1 missing value generated)
+(5 real changes made)
+AT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+BE: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+BG: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+CH: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CY: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CZ: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DK: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+ES: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EU27_2020: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FI: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+HR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IS: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LU: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LV: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+MT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NO: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+PL: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+PT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+SE: all characters numeric; replaced as double
+(6 missing values generated)
+(1 real change made)
+SI: all characters numeric; replaced as double
+(2 missing values generated)
+(5 real changes made)
+SK: all characters numeric; replaced as double
+(6 missing values generated)
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               39   ->   1,170       
+Number of variables                  31   ->   3           
+j variable (30 values)                    ->   ID_2digit
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000g.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000g.tmp saved as .dta format
+(32 vars, 39 obs)
+year: all characters numeric; replaced as int
+(1 missing value generated)
+(5 real changes made)
+AT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+BE: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+BG: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+CH: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CY: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CZ: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DK: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+ES: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EU27_2020: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FI: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+HR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IS: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LU: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LV: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+MT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NO: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+PL: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+PT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+SE: all characters numeric; replaced as double
+(6 missing values generated)
+(1 real change made)
+SI: all characters numeric; replaced as double
+(2 missing values generated)
+(5 real changes made)
+SK: all characters numeric; replaced as double
+(6 missing values generated)
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               39   ->   1,170       
+Number of variables                  31   ->   3           
+j variable (30 values)                    ->   ID_2digit
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000h.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000h.tmp saved as .dta format
+(32 vars, 39 obs)
+year: all characters numeric; replaced as int
+(1 missing value generated)
+(5 real changes made)
+AT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+BE: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+BG: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+CH: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CY: all characters numeric; replaced as byte
+(6 missing values generated)
+(5 real changes made)
+CZ: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DK: all characters numeric; replaced as byte
+(6 missing values generated)
+(5 real changes made)
+EE: all characters numeric; replaced as double
+(6 missing values generated)
+(15 real changes made)
+EL: all characters numeric; replaced as double
+(16 missing values generated)
+(5 real changes made)
+ES: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EU27_2020: all characters numeric; replaced as double
+(6 missing values generated)
+(38 real changes made)
+FI: all characters numeric; replaced as byte
+(39 missing values generated)
+(5 real changes made)
+FR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+HR: all characters numeric; replaced as byte
+(6 missing values generated)
+(5 real changes made)
+IE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IS: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LU: all characters numeric; replaced as byte
+(6 missing values generated)
+(5 real changes made)
+LV: all characters numeric; replaced as byte
+(6 missing values generated)
+(5 real changes made)
+MT: all characters numeric; replaced as byte
+(6 missing values generated)
+(5 real changes made)
+NL: all characters numeric; replaced as double
+(6 missing values generated)
+(38 real changes made)
+NO: all characters numeric; replaced as byte
+(39 missing values generated)
+(3 real changes made)
+PL: all characters numeric; replaced as double
+(4 missing values generated)
+(38 real changes made)
+PT: all characters numeric; replaced as byte
+(39 missing values generated)
+(5 real changes made)
+SE: all characters numeric; replaced as double
+(6 missing values generated)
+(7 real changes made)
+SI: all characters numeric; replaced as double
+(8 missing values generated)
+(5 real changes made)
+SK: all characters numeric; replaced as double
+(6 missing values generated)
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               39   ->   1,170       
+Number of variables                  31   ->   3           
+j variable (30 values)                    ->   ID_2digit
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000i.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000i.tmp saved as .dta format
+(32 vars, 39 obs)
+year: all characters numeric; replaced as int
+(1 missing value generated)
+(5 real changes made)
+AT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+BE: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+BG: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+CH: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CY: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+CZ: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+DK: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+ES: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+EU27_2020: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FI: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+FR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+HR: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IE: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IS: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+IT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LU: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+LV: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+MT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NL: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+NO: all characters numeric; replaced as double
+(6 missing values generated)
+(3 real changes made)
+PL: all characters numeric; replaced as double
+(4 missing values generated)
+(5 real changes made)
+PT: all characters numeric; replaced as double
+(6 missing values generated)
+(5 real changes made)
+SE: all characters numeric; replaced as double
+(6 missing values generated)
+(1 real change made)
+SI: all characters numeric; replaced as double
+(2 missing values generated)
+(5 real changes made)
+SK: all characters numeric; replaced as double
+(6 missing values generated)
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 4 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               39   ->   1,170       
+Number of variables                  31   ->   3           
+j variable (30 values)                    ->   ID_2digit
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000j.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000j.tmp saved as .dta format
+
+.         
+. use "`emission2'"
+
+. merge 1:1 ID_2digit year using  "`emission6'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,170  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge 1:1 ID_2digit year using  "`emission21'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,170  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge 1:1 ID_2digit year using  "`emission31'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,170  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge 1:1 ID_2digit year using  "`emission32'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             1,170  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. preserve
+
+. use names,clear
+
+. keep if ID_2digit!=""
+(197 observations deleted)
+
+. tempfile names
+
+. save "`names'", replace 
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000l.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000l.tmp saved as .dta format
+
+. restore
+
+. merge m:1 ID_2digit using "`names'" 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                            48
+        from master                        39  (_merge==1)
+        from using                          9  (_merge==2)
+
+    Matched                             1,131  (_merge==3)
+    -----------------------------------------
+
+. drop if _merge!=3 //LIE's emissions are missing
+(48 observations deleted)
+
+. drop _merge 
+
+. 
+. label var year "year"
+
+. label var ID_2digit "2-digit country ID"
+
+. gen emission_ctsectors=emission21+emission31+emission32
+(276 missing values generated)
+
+. label var emission_ctsectors "CO2 from fuel combustion in road transport, commercial, institutional
+> , household sectors"
+note: label truncated to 80 characters
+
+. 
+. drop emission2 emission6 emission21 emission31 emission32
+
+. 
+. destring year, replace
+year already numeric; no replace
+
+. 
+. save emission_2018,replace
+(file emission_2018.dta not found)
+file emission_2018.dta saved
+
+. 
+. 
+. *************  Employment data ********************
+. *Manufacturing and total employment data
+. include employment
+
+. clear
+
+. *******************************************************************************
+. *
+. *     Create employment data set 01/25/20 
+. *
+. *******************************************************************************
+. *
+. global country Austria Belgium Bulgaria Switzerland Cyprus Czechia Germany Denmark EuroareaEA111999
+> EA122001 Euroarea12countries Euroarea19countries Euroarea20countries Estonia Greece Spain EuropeanU
+> nion15countries1 EuropeanUnion27countriesf EuropeanUnion28countries Finland France Croatia Hungary 
+> Ireland Iceland Italy Liechtenstein Lithuania Luxembourg Latvia Montenegro NorthMacedonia Malta Net
+> herlands Norway Poland Portugal Romania Serbia Sweden Slovenia Slovakia UnitedKingdom
+
+. 
+. ***** Total Employment *****
+. import excel using "C:\Users\matti\PycharmProjects\Formatting Document\total empl.xlsx", sheet(Shee
+> t 1) cellrange(A10:AR60) firstrow clear
+(44 vars, 50 obs)
+
+. foreach i in $country {
+  2. if "`i'" != "Denmark" & "`i'" != "France" & "`i'" != "Norway" {
+  3. qui replace `i' = "" if `i' == ":" 
+  4. qui destring `i', replace
+  5. }
+  6. }
+
+. gather $country, variable(country) value(total_employment) 
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 31 32 33 34 35 36 37 38 39 
+> 4 40 41 42 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               50   ->   2,100       
+Number of variables                  44   ->   4           
+j variable (42 values)                    ->   country
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+
+. 
+. tempfile total_employment
+
+. save "`total_employment'", replace
+(file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000m.tmp not found)
+file C:\Users\matti\AppData\Local\Temp\ST_40e0_00000m.tmp saved as .dta format
+
+. 
+. 
+. 
+. ***** Manufacturing Employment *****
+. import excel using "C:\Users\matti\PycharmProjects\Formatting Document\total empl.xlsx", sheet(Shee
+> t 4) cellrange(A10:AR60) firstrow clear
+(44 vars, 50 obs)
+
+. foreach i in $country {
+  2. if "`i'" != "Denmark" & "`i'" != "France" & "`i'" != "Norway" {
+  3. qui replace `i' = "" if `i' == ":" 
+  4. qui destring `i', replace
+  5. }
+  6. }
+
+. gather $country, variable(country) value(manufacturing_employment) 
+(j = 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 24 25 26 27 28 29 3 30 31 32 33 34 35 36 37 38 39 
+> 4 40 41 42 5 6 7 8 9)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               50   ->   2,100       
+Number of variables                  44   ->   4           
+j variable (42 values)                    ->   country
+xij variables:
+                 ____1 ____10 ... ____9   ->   ____
+-----------------------------------------------------------------------------
+
+. 
+. 
+. 
+. ***** merge with Total Employment dataset *****
+. merge 1:1 country GEO using "`total_employment'"
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             2,100  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. 
+. *rename countries
+. replace country="Czech Republic" if country=="Czechia"
+(50 real changes made)
+
+. replace country="Germany" if country=="Germanyuntil1990formerterri"
+(0 real changes made)
+
+. replace country="United Kingdom" if country=="UnitedKingdom"
+(50 real changes made)
+
+. replace country="Slovak Republic" if country=="Slovakia"
+(50 real changes made)
+
+. rename GEO year
+
+. 
+. label var total_employment "Total employment domestic concept (thousand persons)"
+
+. label var manufacturing_employment "Manufacturing employment domestic concept (thousand persons)"
+
+. label var country "Country name"
+
+. 
+. rename manufacturing_employment empman
+
+. rename total_employment emptot
+
+. 
+. destring year,replace
+year: all characters numeric; replaced as int
+(42 missing values generated)
+
+. merge m:1 country using "names"
+(variable country was str25, now str66 to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                           754
+        from master                       550  (_merge==1)
+        from using                        204  (_merge==2)
+
+    Matched                             1,550  (_merge==3)
+    -----------------------------------------
+
+. tab country if _merge==1
+
+                           Country name |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+                         Czech Republic |         50        9.09        9.09
+               Euroarea12countries20012 |         50        9.09       18.18
+                Euroarea19countries2015 |         50        9.09       27.27
+               Euroarea20countriesfrom2 |         50        9.09       36.36
+               EuroareaEA111999EA122001 |         50        9.09       45.45
+              EuropeanUnion15countries1 |         50        9.09       54.55
+              EuropeanUnion27countriesf |         50        9.09       63.64
+              EuropeanUnion28countries2 |         50        9.09       72.73
+                         NorthMacedonia |         50        9.09       81.82
+                                 Serbia |         50        9.09       90.91
+                        Slovak Republic |         50        9.09      100.00
+----------------------------------------+-----------------------------------
+                                  Total |        550      100.00
+
+. drop if _merge!=3
+(754 observations deleted)
+
+. drop _merge
+
+. save "employment.dta",replace
+(file employment.dta not found)
+file employment.dta saved
+
+. 
+. 
+. 
+. 
+. *******************************************************************************
+. * 2. Merging the datasets and running calculations to create the final dataset 
+. *       The final dataset is called ctax_AEJM and is found
+. *       in the folder root/stata/data.
+. *******************************************************************************
+. include merge_and_calculate_2018
+
+. clear
+
+. *******************************************************************************
+. *
+. * Merge gdpdata, ctax, diesel price, and employment data and do calculations  01/25/20 
+. *
+. *******************************************************************************
+. *
+. *********************************************************
+. * merge gdpdata, ctax, energy price, and employment data
+. *********************************************************
+. *
+. use gdpdata, clear
+
+. 
+. merge 1:1 ID year using ctax_CTI
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        14,241
+        from master                    13,951  (_merge==1)
+        from using                        290  (_merge==2)
+
+    Matched                             3,251  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. erase gdpdata.dta
+
+. erase ctax_CTI.dta
+
+. merge 1:1 ID year using emission_2018
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        16,419
+        from master                    16,390  (_merge==1)
+        from using                         29  (_merge==2)
+
+    Matched                             1,102  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. erase emission_2018.dta
+
+. merge 1:1 ID year using employment
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                        15,979
+        from master                    15,975  (_merge==1)
+        from using                          4  (_merge==2)
+
+    Matched                             1,546  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. erase employment.dta
+
+. sort country year
+
+. *
+. drop if inlist(ID,"DEW","EA19","EU28","OECDE","OEU")
+(124 observations deleted)
+
+. drop if country==""
+(4,854 observations deleted)
+
+. order country ID year
+
+. sort ID year
+
+. drop ID_2digit 
+
+. desc
+
+Contains data from gdpdata.dta
+ Observations:        12,547                  
+    Variables:            30                  2 Jul 2024 21:40
+-----------------------------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+-----------------------------------------------------------------------------------------------------
+country         str66   %66s                  name
+ID              str8    %9s                   LOCATION
+year            int     %10.0g                Year
+igdp16          double  %14.2f                US GDP deflator (2016=100)
+igdp15          double  %14.2f                Index2015
+ppp             double  %10.0g                Purchasing power parity (OECD)
+rgdp            double  %10.0g                Real GDP, local currency
+pgdp            double  %10.0g                GDP deflator, local currency
+ngdp_usd        double  %10.0g                GDP, nominal USD
+ngdppc_usd      double  %10.0g                GDPPC, nominal USD
+a               str53   %53s                  
+pop             float   %9.0g                 population (millions)
+rgdp_wb         float   %9.0g                 Real GDP growth, World Bank, unadjusted
+rgdp_usd        float   %9.0g                 real GDP (USD)
+rgdppc_usd      float   %9.0g                 real per capita GDP (2016 USD)
+rgdppc          float   %9.0g                 Real GDP pc (real local currency)
+rgdp_oecd       float   %9.0g                 OECD-wide GDP (2016 USD)
+rgdppc_oecd     float   %9.0g                 OECD-wide GDP per capita (2016 USD)
+dpgdp           float   %9.0g                 
+ecp_ghg_ta~2015 float   %9.0g                 Emissions (2013 GHG) weighted carbon tax, 2015 USD
+HUN             double  %10.0g                HUN
+NET             double  %10.0g                NET
+share           double  %10.0g                share of jurisdiction's GHG emissions covered by tax
+rate_CTI_LCU    double  %14.2fc               Carbon tax rate from WB CTI (nominal local currency)
+IntRevRec       double  %10.0g                Fraction of carbon tax revenues initially earmarked for
+                                                tax reduction
+share19         float   %9.0g                 share GHG emissions covered by tax in 2019
+emission_ctse~s float   %9.0g                 CO2 from fuel combustion in road transport, commercial,
+                                                institutional, household
+Kosovo          str1    %9s                   Kosovo*
+empman          double  %10.0g                Manufacturing employment domestic concept (thousand
+                                                persons)
+emptot          double  %10.0g                Total employment domestic concept (thousand persons)
+-----------------------------------------------------------------------------------------------------
+Sorted by: ID  year
+     Note: Dataset has changed since last saved.
+
+. *
+. *********************************************************
+. *  Work on merged data set
+. *********************************************************
+. *
+. * extend share of emissions to earlier dates
+. cap drop x99=.
+
+. sort ID year
+
+. by ID: egen x99 = max(share19)
+(5,122 missing values generated)
+
+. replace share19 = x99
+(3,884 real changes made)
+
+. replace share19 = 0 if share19==.
+(5,122 real changes made)
+
+. drop x99
+
+. *
+. *********************************************************
+. *  Create OECD- and FSU-wide growth rates: gdp, gdppc, emptot, empman
+. *********************************************************
+. *
+. sort ID year
+
+. egen cnum = group(ID)
+
+. xtset cnum year
+
+Panel variable: cnum (unbalanced)
+ Time variable: year, 1960 to 2023
+         Delta: 1 unit
+
+. 
+. foreach yy of varlist rgdp rgdppc  empman emptot  emission_ctsectors {  
+  2.  gen l`yy' = ln(`yy')
+  3.  gen dl`yy' = 100*D.l`yy'
+  4. }
+(3,045 missing values generated)
+(3,237 missing values generated)
+(10,455 missing values generated)
+(10,506 missing values generated)
+(11,616 missing values generated)
+(11,646 missing values generated)
+(11,616 missing values generated)
+(11,646 missing values generated)
+(11,692 missing values generated)
+(11,721 missing values generated)
+
+. label var dlrgdp   "Real GDP annual growth rate (percent)"
+
+. label var dlrgdppc "Real GDPPC annual growth rate (percent)"
+
+. label var dlemptot "Total employment annual growth rate (percent)"
+
+. label var dlempman "Manufacturing employment annual growth rate (percent)" 
+
+. label var dlemission_ctsectors "CO2 from fuel consumption in road transport, commercial and institu
+> tional sector and by households, annual growth rate (percent)" 
+note: label truncated to 80 characters
+
+. *
+. *********************************************************
+. *  Create ctax related variables working with merged gdp and ctax data
+. *********************************************************
+. *
+. replace rate_CTI_LCU = 0 if rate_CTI_LCU==.
+(12,273 real changes made)
+
+. gen ctax = (rate_CTI_LCU>0)
+
+.  label var ctax "= 1 if carbon tax in effect"
+
+. sort ID year
+
+. by ID: egen ctaxever = max(ctax)
+
+.  label var ctaxever "carbon tax in any year"
+
+. 
+. * Create deflator which is GDP deflator, adjusted for exchange rate conversion 
+. *   for countries switching to the Euro in-sample, normalized to 2018 = 100 
+. *   Also adjust nominal LCU tax rate and receipts to be in Euros at conversion rate
+. gen rate_LCU_adj = rate_CTI_LCU
+
+. gen x99 = .
+(12,547 missing values generated)
+
+.  replace x99 = pgdp if year==2018
+(187 real changes made)
+
+. by ID: egen pindex = max(x99)
+(546 missing values generated)
+
+.  replace pindex = 100*pgdp/pindex
+(11,991 real changes made, 2,609 to missing)
+
+. * Estonia: EUR 1 = 15.6466 Estonian kroonid, 1/1/2011, https://ec.europa.eu/info/business-economy-e
+> uro/euro-area/euro/eu-countries-and-euro/estonia-and-euro_en
+. *           tax rate in Euros starting 2011, revenues always in Euros 
+. replace pindex = pindex*15.6466 if (ID=="EST")*(year<2011)
+(16 real changes made)
+
+. replace rate_LCU_adj = rate_LCU_adj/15.6466 if (ID=="EST")*(year<2011)
+(11 real changes made)
+
+. * Finland: 1 = 5.94573 mk, 1/1/2002, https://ec.europa.eu/info/business-economy-euro/euro-area/euro
+> /eu-countries-and-euro/finland-and-euro_en
+. *     both tax rate and revenues are in Finmarks through 1999, in Euros 2000+
+. replace pindex = pindex*5.94573 if (ID=="FIN")*(year<2000)
+(40 real changes made)
+
+. replace rate_LCU_adj = rate_LCU_adj/5.94573 if (ID=="FIN")*(year<2000) /* Finland carbon tax rates 
+> denoted in Euros in 2000 and 2001 although not yet officially adopted */
+(10 real changes made)
+
+. 
+. * Latvia: 1 = 0.702804 Latvian lat, 1/1/2014, https://ec.europa.eu/info/business-economy-euro/euro-
+> area/euro/eu-countries-and-euro/latvia-and-euro_en
+. *     both tax rate and revenues are in LVL through 2013, in Euros 2014+
+. replace pindex = pindex*0.702804 if (ID=="LVA")*(year<2014)
+(19 real changes made)
+
+. replace rate_LCU_adj = rate_LCU_adj/0.702804 if (ID=="LVA")*(year<2014)
+(10 real changes made)
+
+. 
+. * Slovenia: EUR 1 = SIT 239.64, 1/1/2007, https://ec.europa.eu/info/business-economy-euro/euro-area
+> /euro/eu-countries-and-euro/slovenia-and-euro_en
+. *           tax rate in Euros starting 2007, revenues in Euros starting 2000
+. replace pindex = pindex*239.64 if (ID=="SVN")*(year<2007)
+(12 real changes made)
+
+. replace rate_LCU_adj =rate_LCU_adj/239.64 if (ID=="SVN")*(year<2007)
+(11 real changes made)
+
+.  label var pindex "LCU price index (GDP deflator, adjusted for Euro entry, 2018=100)"
+
+.  label var rate_LCU_adj "Carbon tax rate (nominal, LCU, adjusted Euro entry)"
+
+. *
+. * rebase US GDP deflator to 2018, create exchange rate and PPP in 2018
+. replace x99 = .
+(187 real changes made, 187 to missing)
+
+.  replace x99 = igdp16 if year==2018
+(53 real changes made)
+
+. by ID: egen igdp18 = max(x99)
+(9,123 missing values generated)
+
+.  replace igdp18 = 100*igdp16/igdp18
+(3,424 real changes made, 880 to missing)
+
+.  label var igdp18 "US GDP deflator rebased to 2018"
+
+. 
+. replace x99 = .
+(53 real changes made, 53 to missing)
+
+.  replace x99 = ppp if year==2018
+(53 real changes made)
+
+. by ID: egen ppp18 = max(x99)
+(9,123 missing values generated)
+
+.  label var ppp18 "PPP in 2018"
+
+. 
+. * Real carbon tax rate, local currency, 2018 LCUs
+. gen rater_LCU = rate_CTI_LCU/(pindex/100)
+(3,155 missing values generated)
+
+.  label var rater_LCU "Carbon tax rate (real, LCU, 2018 LCU)"
+
+. 
+. * Real carbon tax rate, 2018 USD, PPP conversion
+. gen rater_LCU_USD18 = rater_LCU/ppp18
+(9,788 missing values generated)
+
+.  label var rater_LCU_USD18 "Carbon tax rate (real, LCU, 2018 USD @ PPP)"
+
+.  
+. * convert Dolphin's 2015 USD rates to 2018 USD rates
+. **************************
+. *  Drop the ecp_co2 variables in emissions 
+. **************************
+. replace x99 = .
+(53 real changes made, 53 to missing)
+
+.  replace x99 = igdp15 if year==2018
+(53 real changes made)
+
+. by ID: egen igdp18_15 = max(x99)
+(9,123 missing values generated)
+
+.  label var igdp18_15 "US GDP deflator of 2018 (base: 2015)"
+
+. 
+. replace ecp_ghg_tax_usd_2015 =0 if ecp_ghg_tax_usd_2015==.
+(9,067 real changes made)
+
+. gen ecp_ghg_tax_usd_2018 = ecp_ghg_tax_usd_2015*igdp18_15/100
+(9,123 missing values generated)
+
+. label var ecp_ghg_tax_usd_2018 "Emissions (2013 GHG) weighted carbon tax, 2018 USD" 
+
+. drop ecp_ghg_tax_usd_2015
+
+. *
+. *
+. * First year of carbon tax
+. cap drop cnum
+
+. egen cnum = group(ID)
+
+. su cnum, d
+
+                          group(ID)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            2              1
+ 5%           10              1
+10%           20              1       Obs              12,547
+25%           49              1       Sum of wgt.      12,547
+
+50%           99                      Mean           98.93935
+                        Largest       Std. dev.      57.16196
+75%          148            201
+90%          177            201       Variance        3267.49
+95%          192            201       Skewness       .0252927
+99%          200            201       Kurtosis       1.833556
+
+. local cnummax = r(max)
+
+. dis `cnummax'
+201
+
+. gen ctaxyear = .
+(12,547 missing values generated)
+
+. gen c99 = .
+(12,547 missing values generated)
+
+.  replace c99 = ctax*year if ctax==1
+(274 real changes made)
+
+. forvalues i = 1/`cnummax' {
+  2.  qui su c99 if cnum==`i', d
+  3.  qui replace ctaxyear = r(min) if cnum==`i'
+  4. }
+
+. label var ctaxyear "First year of carbon tax (else missing)"
+
+. drop c99 cnum
+
+. *
+. *********************************************************
+. * Dummy variables for Europe ETS participants and other country groups
+. *********************************************************
+. gen EU = 0
+
+.  replace EU = 1 if inlist(ID,"AUT","BEL","BGR","CYP","CZE","DEU","DNK","ESP") 
+(520 real changes made)
+
+.  replace EU = 1 if inlist(ID,"EST","FIN","FRA","GBR","GRC","HRV","HUN","IRL") 
+(520 real changes made)
+
+.  replace EU = 1 if inlist(ID,"ISL","ITA","LTU","LUX","LVA","MLT","NLD","NOR")
+(520 real changes made)
+
+.  replace EU = 1 if inlist(ID,"POL","PRT","ROU","SVK","SVN","SWE","LIE" )
+(455 real changes made)
+
+. 
+. * label var EU "member of EU ETS"
+. gen EU2 = EU
+
+.  replace EU2 = 1 if ID=="CHE"
+(65 real changes made)
+
+.  label var EU2 "EU plus Iceland, Norway, Switzerland"
+
+. drop EU  
+
+. 
+. gen SCA = inlist(ID,"NOR","SWE","DNK","FIN")
+
+.  label var SCA "Norway, Sweden, Denmark, Finland"
+
+. *
+. sort ID year
+
+. label var year "Year"
+
+. cap drop x99
+
+. cap drop y99
+
+. keep if EU2
+(10,467 observations deleted)
+
+. 
+. label var lemission_ctsectors "log(emission_ctsectors)"
+
+. label var lempman "log(manufactoring employment)"
+
+. label var lemptot "log(total employment)"
+
+. label var lrgdp "log real gdp"
+
+. label var lrgdppc "log real per capita gdp"
+
+. aorder
+
+. order country ID year
+
+. keep country ID year IntRevRec share19 emission_ctsectors ecp_ghg_tax_usd_2018 /// 
+>   lrgdp dlrgdp lrgdppc dlrgdppc lempman dlempman lemptot dlemptot lemission_ctsectors /// 
+>   dlemission_ctsectors ctaxever rater_LCU_USD18 EU2 SCA ctaxyear pgdp 
+
+. *
+. save analysis/ctax_AEJM,replace
+(file analysis/ctax_AEJM.dta not found)
+file analysis/ctax_AEJM.dta could not be opened
+r(603);
+r(603);
+
+end of do-file
+
+r(603);
+
+. br
+
+. save ctax_AEJM,replace
+(file ctax_AEJM.dta not found)
+file ctax_AEJM.dta saved
+
+.  save ctax_AEJM2,replace
+(file ctax_AEJM2.dta not found)
+file ctax_AEJM2.dta saved
+
+. exit, clear
